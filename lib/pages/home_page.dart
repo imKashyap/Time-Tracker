@@ -31,6 +31,12 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
+      body: Container(
+        child: Center(child: Text('Hello World',
+        style: TextStyle(
+          fontSize: 40.0
+        ),)),
+      ),
     );
   }
 }

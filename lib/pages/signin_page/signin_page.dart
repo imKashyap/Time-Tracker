@@ -30,7 +30,7 @@ class SignInPage extends StatelessWidget {
             SignInButton(
               icon: Image.asset('assets/images/google-logo.png'),
               signInText: 'Sign in with Google',
-              onPressed: () {},
+              onPressed: _signInWithGoogle,
               color: Colors.white,
               textColor: Colors.black,
             ),
@@ -38,7 +38,7 @@ class SignInPage extends StatelessWidget {
             SignInButton(
               icon: Image.asset('assets/images/facebook-logo.png'),
               signInText: 'Sign in with Facebook',
-              onPressed: () {},
+              onPressed: _signInWithFb,
               color: Colors.blue[900],
               textColor: Colors.white,
             ),
@@ -63,7 +63,7 @@ class SignInPage extends StatelessWidget {
             SignInButton(
               color: Colors.lime,
               signInText: 'Maybe Later',
-              onPressed:_signInAnonymously,
+              onPressed: _signInAnonymously,
               textColor: Colors.black,
               icon: SizedBox(),
             )
@@ -75,9 +75,24 @@ class SignInPage extends StatelessWidget {
 
   Future<void> _signInAnonymously() async {
     try {
-          await auth.signInAnonymously();
+      await auth.signInAnonymously();
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      await auth.signInWithGoogle();
+    } catch (e) {
+      print('message=$e');
+    }
+  }
+    Future<void> _signInWithFb() async {
+    try {
+      await auth.signInWithFb();
+    } catch (e) {
+      print('message=$e');
     }
   }
 }
