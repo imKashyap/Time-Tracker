@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:timetracker/pages/email_signin_page.dart';
 import 'package:timetracker/pages/signin_page/signin_button.dart';
 import 'package:timetracker/sevices/auth.dart';
 
@@ -50,7 +52,7 @@ class SignInPage extends StatelessWidget {
                 size: 35.0,
               ),
               signInText: 'Sign in with email',
-              onPressed: () {},
+              onPressed: () =>_signInWithEmail(context),
               color: Colors.teal,
               textColor: Colors.white,
             ),
@@ -88,11 +90,19 @@ class SignInPage extends StatelessWidget {
       print('message=$e');
     }
   }
-    Future<void> _signInWithFb() async {
+
+  Future<void> _signInWithFb() async {
     try {
       await auth.signInWithFb();
     } catch (e) {
       print('message=$e');
     }
+  }
+
+  void _signInWithEmail(BuildContext context) {
+    Navigator.push(
+        context, MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (context) => EmailSignInPage(auth)));
   }
 }
