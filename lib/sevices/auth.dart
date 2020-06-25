@@ -75,12 +75,12 @@ class Auth implements AuthBase {
         return _getUserFromFirebase(authResult.user);
       } else {
         throw PlatformException(
-            code: 'ERROR_MISSING GOOGLE AUTH TOKENS',
+            code: 'ERROR_MISSING_GOOGLE_AUTH_TOKENS',
             message: 'Google auth tokens are missing');
       }
     } else {
       throw PlatformException(
-          code: 'ERROR_ABORTED BY USER', message: 'Sign in aborted by user');
+          code: 'ERROR_ABORTED_BY_USER', message: 'Sign in aborted by user');
     }
   }
 
@@ -97,7 +97,7 @@ class Auth implements AuthBase {
       return _getUserFromFirebase(authResult.user);
     } else {
       throw PlatformException(
-          code: 'ERROR_ABORTED BY USER', message: 'Sign in aborted by user');
+          code: 'ERROR_ABORTED_BY_USER', message: 'Sign in aborted by user');
     }
   }
 

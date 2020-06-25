@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:timetracker/cmn_widgets/platform_alert_dialog.dart';
 import 'package:timetracker/cmn_widgets/submit_button.dart';
 import 'package:timetracker/sevices/auth.dart';
 import 'package:timetracker/validators/form_validator.dart';
@@ -6,8 +8,6 @@ import 'package:timetracker/validators/form_validator.dart';
 enum EmailSignInFormType { signIn, signUp }
 
 class EmailSignInForm extends StatefulWidget with EmailPassValidator {
-  final AuthBase auth;
-  EmailSignInForm(this.auth);
   @override
   _EmailSignInFormState createState() => _EmailSignInFormState();
 }
@@ -93,21 +93,16 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
 
   void _submit() async {
     try {
+      final AuthBase auth = Provider.of<AuthBase>(context, listen: false);
       if (_signInFormState == EmailSignInFormType.signIn) {
-        await widget.auth.loginWithEmail(_email, _password);
+        await auth.loginWithEmail(_email, _password);
       } else {
-        await widget.auth.signUpWithEmail(_email, _password);
+        await auth.signUpWithEmail(_email, _password);
       }
       Navigator.of(context).pop();
     } catch (e) {
-      print(e.toString());
-      await showDialog(
-          context: context,
-          child: AlertDialog(
-            title: Text('Error'),
-            content: Text(e.message),
-            actions: <Widget>[FlatButton(onPressed: () =>Navigator.of(context).pop(), child: Text('OK'))],
-          ));
+      PlatformAlertDialog(
+          title: 'Sign in Failed', content: e.message, defaultActionText: 'OK').show(context);
     }
   }
 
