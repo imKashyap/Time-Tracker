@@ -19,7 +19,7 @@ class LandingPage extends StatelessWidget {
             return HomePage(
             );
           else
-            return SignInPage(
+            return SignInPage.create(context
             );
         } else {
           return Scaffold(

@@ -5,7 +5,7 @@ import 'package:timetracker/cmn_widgets/submit_button.dart';
 import 'package:timetracker/sevices/auth.dart';
 import 'package:timetracker/validators/form_validator.dart';
 
-enum EmailSignInFormType { signIn, signUp }
+import 'email_sign_in_model.dart';
 
 class EmailSignInForm extends StatefulWidget with EmailPassValidator {
   @override
@@ -16,6 +16,11 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final _passFocusNode = FocusNode();
+  EmailSignInFormType _signInFormState = EmailSignInFormType.signIn;
+  String get _email => _emailController.text;
+  String get _password => _passController.text;
+  bool _isSubmitted = false;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -27,8 +32,6 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
       ),
     );
   }
-
-  EmailSignInFormType _signInFormState = EmailSignInFormType.signIn;
 
   List<Widget> signInForm() {
     const spaceBox = SizedBox(
@@ -59,6 +62,8 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
   }
 
   TextField _buildPasswordTextField() {
+    bool showErrorText =
+        _isSubmitted && widget.passValidator.isValid(_password);
     return TextField(
         onChanged: (value) => _updateState(),
         onEditingComplete: _submit,
@@ -68,13 +73,13 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
         obscureText: true,
         keyboardType: TextInputType.visiblePassword,
         decoration: InputDecoration(
-          errorText:
-              widget.passValidator.isValid(_password) ? null : widget.passError,
+          errorText: showErrorText ? null : widget.passError,
           labelText: 'Password',
         ));
   }
 
   TextField _buildEmailTextField() {
+    bool showErrorText = _isSubmitted && widget.emailValidator.isValid(_email);
     return TextField(
       autofocus: true,
       onChanged: (value) => _updateState(),
@@ -84,8 +89,7 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-          errorText:
-              widget.emailValidator.isValid(_email) ? null : widget.emailError,
+          errorText: showErrorText ? null : widget.emailError,
           labelText: 'Email',
           hintText: 'you@example.com'),
     );
@@ -93,6 +97,9 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
 
   void _submit() async {
     try {
+      setState(() {
+        _isSubmitted = true;
+      });
       final AuthBase auth = Provider.of<AuthBase>(context, listen: false);
       if (_signInFormState == EmailSignInFormType.signIn) {
         await auth.loginWithEmail(_email, _password);
@@ -102,7 +109,10 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
       Navigator.of(context).pop();
     } catch (e) {
       PlatformAlertDialog(
-          title: 'Sign in Failed', content: e.message, defaultActionText: 'OK').show(context);
+              title: 'Sign in Failed',
+              content: e.message,
+              defaultActionText: 'OK')
+          .show(context);
     }
   }
 
@@ -110,11 +120,9 @@ class _EmailSignInFormState extends State<EmailSignInForm> {
     setState(() {});
   }
 
-  String get _email => _emailController.text;
-  String get _password => _passController.text;
-
   void toggleFormState() {
     setState(() {
+      _isSubmitted = false;
       _signInFormState = _signInFormState == EmailSignInFormType.signUp
           ? EmailSignInFormType.signIn
           : EmailSignInFormType.signUp;
