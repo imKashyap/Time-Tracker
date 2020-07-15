@@ -18,16 +18,12 @@ abstract class AuthBase {
   Future<User> loginWithEmail(String email, String password);
   Future<User> signInWithFb();
   Future<void> signOut();
-  Future<void> convertUserWithEmail(String email, String password, String name);
-  Future<void> converWithGoogle();
-  Future<void> updateUserName(String name, FirebaseUser currentUser);
-  Future<void> sendPasswordResetEmail(String email);
 }
 
 class Auth implements AuthBase {
   final _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final _fbLogin = FacebookLogin();
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final fbLogin = FacebookLogin();
 
   User _getUserFromFirebase(FirebaseUser user) {
     if (user == null) return null;
@@ -55,22 +51,19 @@ class Auth implements AuthBase {
   Future<User> signUpWithEmail(String email, String password) async {
     AuthResult authResult = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
-    // Update the username
-    //await updateUserName(name, authResult.user);
     return _getUserFromFirebase(authResult.user);
   }
-
-  @override
+  
+ @override
   Future<User> loginWithEmail(String email, String password) async {
-    AuthResult authResult = await _auth.signInWithEmailAndPassword(
+    AuthResult authResult=await _auth.signInWithEmailAndPassword(
         email: email, password: password);
     return _getUserFromFirebase(authResult.user);
   }
 
   @override
   Future<User> signInWithGoogle() async {
-    final GoogleSignInAccount googleSignInAccount =
-        await _googleSignIn.signIn();
+    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
     if (googleSignInAccount != null) {
       final GoogleSignInAuthentication googleAuth =
           await googleSignInAccount.authentication;
@@ -93,7 +86,7 @@ class Auth implements AuthBase {
 
   @override
   Future<User> signInWithFb() async {
-    final result = await _fbLogin.logIn(
+    final result = await fbLogin.logIn(
       ['public_profile'],
     );
     if (result.accessToken != null) {
@@ -110,45 +103,8 @@ class Auth implements AuthBase {
 
   @override
   Future<void> signOut() async {
-    await _fbLogin.logOut();
-    await _googleSignIn.signOut();
+    await fbLogin.logOut();
+    await googleSignIn.signOut();
     await _auth.signOut();
-  }
-
-  @override
-  Future<void> convertUserWithEmail(
-      String email, String password, String name) async {
-    final currentUser = await _auth.currentUser();
-
-    final credential =
-        EmailAuthProvider.getCredential(email: email, password: password);
-    await currentUser.linkWithCredential(credential);
-    await updateUserName(name, currentUser);
-  }
-
-  @override
-  Future<void> converWithGoogle() async {
-    final currentUser = await _auth.currentUser();
-    final GoogleSignInAccount account = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication _googleAuth = await account.authentication;
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      idToken: _googleAuth.idToken,
-      accessToken: _googleAuth.accessToken,
-    );
-    await currentUser.linkWithCredential(credential);
-    await updateUserName(_googleSignIn.currentUser.displayName, currentUser);
-  }
-
-  @override
-  Future<void> updateUserName(String name, FirebaseUser currentUser) async {
-    var userUpdateInfo = UserUpdateInfo();
-    userUpdateInfo.displayName = name;
-    await currentUser.updateProfile(userUpdateInfo);
-    await currentUser.reload();
-  }
-
-  @override
-  Future<void> sendPasswordResetEmail(String email) async {
-    return _auth.sendPasswordResetEmail(email: email);
   }
 }
