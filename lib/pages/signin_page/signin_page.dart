@@ -2,23 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:timetracker/cmn_widgets/platform_exception_alert_dialog.dart';
-import 'package:timetracker/pages/signin_page/sign_in_bloc.dart';
+import 'package:timetracker/pages/signin_page/sign_in_manager.dart';
 import 'package:timetracker/pages/signin_page/signin_button.dart';
 import 'package:timetracker/sevices/auth.dart';
 
 import 'email_sign_in/email_signin_page.dart';
 
 class SignInPage extends StatelessWidget {
-  final SignInBloc bloc;
+   const SignInPage({
+    Key key,
+    @required this.manager,
+    @required this.isLoading,
+  }) : super(key: key);
+  final SignInManager manager;
+  final bool isLoading;
 
-  const SignInPage({Key key, @required this.bloc}) : super(key: key);
   static Widget create(BuildContext context) {
-    final auth= Provider.of<AuthBase>(context);
-    return Provider<SignInBloc>(
-      create: (_) => SignInBloc(auth: auth),
-      dispose: (context, bloc) => bloc.dispose(),
-      child: Consumer<SignInBloc>(
-        builder: (context, bloc, _) =>SignInPage(bloc: bloc,) ,
+    final auth = Provider.of<AuthBase>(context);
+    return ChangeNotifierProvider<ValueNotifier<bool>>(
+      create: (_) => ValueNotifier<bool>(false),
+      child: Consumer<ValueNotifier<bool>>(
+        builder: (_, isLoading, __) => Provider<SignInManager>(
+          create: (_) => SignInManager(auth: auth, isLoading: isLoading),
+          child: Consumer<SignInManager>(
+            builder: (context, manager, _) => SignInPage(
+              manager: manager,
+              isLoading: isLoading.value,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -38,18 +50,12 @@ class SignInPage extends StatelessWidget {
         title: Text('Time Tracker'),
         centerTitle: true,
       ),
-      body: StreamBuilder<Object>(
-          stream:
-              bloc.isLoadingStream,
-          initialData: false,
-          builder: (context, snapshot) {
-            return _buildContents(spaceBox, context, snapshot.data);
-          }),
+      body:  _buildContents(spaceBox, context,),
     );
   }
 
   Padding _buildContents(
-      SizedBox spaceBox, BuildContext context, bool isLoading) {
+      SizedBox spaceBox, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -111,7 +117,7 @@ class SignInPage extends StatelessWidget {
 
   Future<void> _signInAnonymously(BuildContext context) async {
     try {
-      await bloc.signInAnonymously();
+      await manager.signInAnonymously();
     } on PlatformException catch (e) {
       if (e.code != 'ERROR_ABORTED_BY_USER') showErrorDialog(context, e);
     } 
@@ -119,7 +125,7 @@ class SignInPage extends StatelessWidget {
 
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
-      await bloc.signInWithGoogle();
+      await manager.signInWithGoogle();
     } on PlatformException catch (e) {
       if (e.code != 'ERROR_ABORTED_BY_USER') showErrorDialog(context, e);
     }
@@ -127,7 +133,7 @@ class SignInPage extends StatelessWidget {
 
   Future<void> _signInWithFb(BuildContext context) async {
     try {
-      await bloc.signInWithFb();
+      await manager.signInWithFb();
     } on PlatformException catch (e) {
       if (e.code != 'ERROR_ABORTED_BY_USER') showErrorDialog(context, e);
     }
