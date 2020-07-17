@@ -5,8 +5,6 @@ import 'package:timetracker/cmn_widgets/platform_alert_dialog.dart';
 import 'package:timetracker/cmn_widgets/submit_button.dart';
 import 'package:timetracker/pages/signin_page/email_sign_in/email_sign_in_changed_model.dart';
 import 'package:timetracker/sevices/auth.dart';
-import 'email_sign_in_bloc.dart';
-import 'email_sign_in_model.dart';
 
 class EmailSignInFormChangeNotifierBased extends StatefulWidget {
   EmailSignInFormChangeNotifierBased({@required this.model});

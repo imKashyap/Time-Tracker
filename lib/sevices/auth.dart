@@ -18,10 +18,8 @@ abstract class AuthBase {
   Future<User> loginWithEmail(String email, String password);
   Future<User> signInWithFb();
   Future<void> signOut();
-  Future<void> convertUserWithEmail(String email, String password, String name);
-  Future<void> converWithGoogle();
-  Future<void> updateUserName(String name, FirebaseUser currentUser);
-  Future<void> sendPasswordResetEmail(String email);
+  Future<String> verifyPhone(String phoneNo);
+  Future<User> signInWithPhone(String verId, String smsCode);
 }
 
 class Auth implements AuthBase {
@@ -55,8 +53,6 @@ class Auth implements AuthBase {
   Future<User> signUpWithEmail(String email, String password) async {
     AuthResult authResult = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
-    // Update the username
-    //await updateUserName(name, authResult.user);
     return _getUserFromFirebase(authResult.user);
   }
 
@@ -116,39 +112,54 @@ class Auth implements AuthBase {
   }
 
   @override
-  Future<void> convertUserWithEmail(
-      String email, String password, String name) async {
-    final currentUser = await _auth.currentUser();
-
-    final credential =
-        EmailAuthProvider.getCredential(email: email, password: password);
-    await currentUser.linkWithCredential(credential);
-    await updateUserName(name, currentUser);
+  Future<String> verifyPhone(String phoneNo) async {
+    String verificationId;
+    final PhoneVerificationCompleted verified =
+        (AuthCredential authCredential) async {
+      await _auth.signInWithCredential(authCredential);
+    };
+    final PhoneVerificationFailed verificationFailed = (AuthException e) {
+      print(e.message);
+    };
+    final PhoneCodeSent smsSent = (String verId, [int forceResend]) {
+      verificationId = verId;
+    };
+    final PhoneCodeAutoRetrievalTimeout autoTimeout = (String verId) {
+      verificationId = verId;
+    };
+    try {
+      await _auth.verifyPhoneNumber(
+          phoneNumber: "+91$phoneNo",
+          timeout: Duration(seconds: 60),
+          verificationCompleted: verified,
+          verificationFailed: verificationFailed,
+          codeSent: smsSent,
+          codeAutoRetrievalTimeout: autoTimeout);
+      return verificationId;
+    } catch (e) {
+      throw PlatformException(
+          code: 'ERROR_ABORTED_BY_USER', message: 'Sign in aborted by user');
+    }
   }
 
   @override
-  Future<void> converWithGoogle() async {
-    final currentUser = await _auth.currentUser();
-    final GoogleSignInAccount account = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication _googleAuth = await account.authentication;
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      idToken: _googleAuth.idToken,
-      accessToken: _googleAuth.accessToken,
-    );
-    await currentUser.linkWithCredential(credential);
-    await updateUserName(_googleSignIn.currentUser.displayName, currentUser);
-  }
-
-  @override
-  Future<void> updateUserName(String name, FirebaseUser currentUser) async {
-    var userUpdateInfo = UserUpdateInfo();
-    userUpdateInfo.displayName = name;
-    await currentUser.updateProfile(userUpdateInfo);
-    await currentUser.reload();
-  }
-
-  @override
-  Future<void> sendPasswordResetEmail(String email) async {
-    return _auth.sendPasswordResetEmail(email: email);
+  Future<User> signInWithPhone(String verId, String smsCode) async {
+    User loggedInUser;
+    _auth.currentUser().then((user) async {
+      if (user != null)
+        loggedInUser = _getUserFromFirebase(user);
+      else {
+        final AuthCredential authCreds = PhoneAuthProvider.getCredential(
+            verificationId: verId, smsCode: smsCode);
+        try {
+          final AuthResult authResult =
+              await _auth.signInWithCredential(authCreds);
+          loggedInUser = _getUserFromFirebase(authResult.user);
+        } catch (e) {
+          rethrow;
+        }
+      }
+    });
+    return loggedInUser;
   }
 }
