@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:timetracker/cmn_widgets/platform_exception_alert_dialog.dart';
+import 'package:timetracker/pages/signin_page/phone_sign_in/phone_sign_in_page.dart';
+import 'package:timetracker/pages/signin_page/phone_sign_in/phone_signin_form.dart';
 import 'package:timetracker/pages/signin_page/sign_in_manager.dart';
 import 'package:timetracker/pages/signin_page/signin_button.dart';
 import 'package:timetracker/sevices/auth.dart';
@@ -95,6 +97,18 @@ class SignInPage extends StatelessWidget {
             textColor: Colors.white,
           ),
           spaceBox,
+          SignInButton(
+            icon: Icon(
+              Icons.phone,
+              color: Colors.white,
+              size: 35.0,
+            ),
+            signInText: 'Sign in with phone',
+            onPressed: isLoading ? null : () => _signInWithPhone(context),
+            color: Colors.red,
+            textColor: Colors.white,
+          ),
+          spaceBox,
           Text(
             'Or',
             style: TextStyle(fontSize: 20.0),
@@ -144,6 +158,13 @@ class SignInPage extends StatelessWidget {
         context,
         MaterialPageRoute(
             fullscreenDialog: true, builder: (context) => EmailSignInPage()));
+  }
+
+  void _signInWithPhone(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            fullscreenDialog: true, builder: (context) => PhoneSignInPage()));
   }
 
   Widget _buildFooter(bool isLoading) {
